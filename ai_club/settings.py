@@ -45,6 +45,10 @@ if not DEBUG:
         '.onrender.com',  # Allow any onrender.com subdomain in production
     ])
 
+# TEMPORARY: Allow any user to access admin (for testing)
+# Set to False when you want to restrict to staff only
+OPEN_ADMIN_ACCESS = os.getenv('OPEN_ADMIN_ACCESS', 'True') == 'True'
+
 
 # Application definition
 
