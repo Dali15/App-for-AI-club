@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Announcements - AI Club{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title mb-0">
+        <i class="fas fa-bell"></i> Announcements
+    </h1>
+    {% if user.is_authenticated and user.role in 'president,vice_president,media'|lower %}
+    <a href="{% url 'create_announcement' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> New Announcement
+    </a>
+    {% endif %}
+</div>
+
+<!-- Search Box -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="d-flex gap-2">
+            <input type="text" name="search" class="form-control" placeholder="Search announcements..." value="{{ search_query }}">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-search"></i> Search
+            </button>
+            {% if search_query %}
+            <a href="{% url 'announcement_list' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Clear
+            </a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+{% if announcements %}
+<div class="row">
+    {% for a in announcements %}
+    <div class="col-lg-8 offset-lg-2 mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">{{ a.title }}</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">{{ a.content }}</p>
+            </div>
+            <div class="card-footer text-muted d-flex justify-content-between align-items-center">
+                <small>
+                    <i class="fas fa-calendar"></i>
+                    {{ a.created_at|date:"M d, Y \a\t H:i" }}
+                </small>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info" role="alert">
+    <i class="fas fa-info-circle"></i>
+    <strong>{% if search_query %}No announcements found matching "{{ search_query }}"!{% else %}No Announcements Yet!{% endif %}</strong> 
+    {% if not search_query %}Check back for important updates.{% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

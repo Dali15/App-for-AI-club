@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestion des Permissions{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>🔐 Gestion des Permissions</h1>
+            <p class="text-muted">Gérez les permissions pour chaque rôle simplement</p>
+        </div>
+        <div class="col-md-4 text-end">
+            {% if user_is_admin %}
+                <span class="badge bg-success">👑 Administrateur</span>
+            {% else %}
+                <span class="badge bg-info">👑 Président</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Roles Grid -->
+    <div class="row">
+        {% for role in roles_data %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 role-card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">{{ role.label }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="mb-2">Permissions actuelles:</h6>
+                        <div class="permission-list">
+                            {% for perm in role.permissions %}
+                                <span class="badge bg-success me-2 mb-2">
+                                    {% for perm_key, perm_label in role.available_permissions %}
+                                        {% if perm_key == perm %}
+                                            {{ perm_label }}
+                                        {% endif %}
+                                    {% endfor %}
+                                </span>
+                            {% empty %}
+                                <p class="text-muted mb-0"><small>Aucune permission</small></p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-light">
+                    <a href="{% url 'view_role_permissions' role.key %}" class="btn btn-sm btn-primary w-100">
+                        <i class="fas fa-edit"></i> Modifier
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Info Box -->
+    <div class="alert alert-info mt-5">
+        <h6 class="alert-heading">ℹ️ Information</h6>
+        <p class="mb-0">Seuls les <strong>Propriétaires</strong> et <strong>Présidents</strong> peuvent gérer les permissions. 
+        Les modifications sont enregistrées dans l'historique des modifications.</p>
+    </div>
+
+</div>
+
+<style>
+    .role-card {
+        transition: all 0.3s ease;
+        border: 2px solid #e0e0e0;
+    }
+    
+    .role-card:hover {
+        border-color: #007bff;
+        box-shadow: 0 4px 15px rgba(0, 123, 255, 0.15);
+        transform: translateY(-2px);
+    }
+    
+    .permission-list {
+        max-height: 150px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
