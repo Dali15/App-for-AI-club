@@ -26,7 +26,17 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-lkm-o2eonvl!ci2%=i4y0s-6&*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,aiclub.local').split(',')
+# Allow all Render domains by default, but can be overridden via env var
+if os.getenv('ALLOWED_HOSTS'):
+    ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',')
+else:
+    ALLOWED_HOSTS = [
+        'localhost',
+        '127.0.0.1',
+        'aiclub.local',
+        '*.onrender.com',  # Allow all Render subdomains
+        'ai-club-ssnk.onrender.com',  # Your specific Render domain
+    ]
 
 
 # Application definition
@@ -136,6 +146,17 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Media Files Configuration
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# CSRF & HTTPS Configuration for Production
+CSRF_TRUSTED_ORIGINS = [
+    'https://ai-club-ssnk.onrender.com',
+    'https://*.onrender.com',
+]
+
+# Security Settings
+SECURE_SSL_REDIRECT = not DEBUG  # Enforce HTTPS in production
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
