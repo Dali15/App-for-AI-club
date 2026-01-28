@@ -39,4 +39,6 @@ class Command(BaseCommand):
             self.stdout.write(f'🔐 Password: {password}')
             self.stdout.write(f'\n📍 Login at: https://ai-club-ssnk.onrender.com/admin')
         except Exception as e:
+            self.stdout.write(self.style.ERROR(f'❌ Error: {str(e)}'))
+        except Exception as e:
             self.stdout.write(self.style.ERROR(f'❌ Error: {str(e)}')))
