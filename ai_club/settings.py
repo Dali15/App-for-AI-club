@@ -34,7 +34,6 @@ else:
         'localhost',
         '127.0.0.1',
         'aiclub.local',
-        '*.onrender.com',  # Allow all Render subdomains
         'ai-club-ssnk.onrender.com',  # Your specific Render domain
     ]
 
