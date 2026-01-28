@@ -1,6 +1,22 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import User, RolePermission
+import os
+
+# Allow temporarily opening the admin site to any authenticated user.
+# Control via the environment variable `OPEN_ADMIN_ACCESS`.
+OPEN_ADMIN_ACCESS = os.getenv('OPEN_ADMIN_ACCESS', 'True') == 'True'
+
+
+class OpenAdminSite(admin.AdminSite):
+    """Admin site that grants access to any authenticated user."""
+
+    def has_permission(self, request):
+        return request.user.is_authenticated
+
+
+if OPEN_ADMIN_ACCESS:
+    admin.site = OpenAdminSite(name='admin_site')
 
 
 # Customize admin site
