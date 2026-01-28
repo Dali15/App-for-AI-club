@@ -299,9 +299,9 @@ If you found this helpful, please give it a star! ⭐
 ## 👨‍💻 Author
 
 **Your Name**
-- 🔗 [LinkedIn](https://linkedin.com/in/yourprofile)
-- 🐙 [GitHub](https://github.com/yourusername)
-- 📧 [Email](mailto:your.email@example.com)
+- 🔗 [LinkedIn](https://www.linkedin.com/in/ben-brahim-mohamed-ali-4b7053376/)
+- 🐙 [GitHub](https://github.com/Dali15)
+- 📧 [Email](mailto:med2006dali@gmail.com)
 
 ---
 
