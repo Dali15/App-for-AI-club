@@ -26,16 +26,24 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-lkm-o2eonvl!ci2%=i4y0s-6&*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-# Allow all Render domains by default, but can be overridden via env var
+# Dynamic ALLOWED_HOSTS configuration
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'aiclub.local',
+]
+
+# Add environment-specific hosts
 if os.getenv('ALLOWED_HOSTS'):
-    ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',')
-else:
-    ALLOWED_HOSTS = [
-        'localhost',
-        '127.0.0.1',
-        'aiclub.local',
-        'ai-club-ssnk.onrender.com',  # Your specific Render domain
-    ]
+    # If set via environment, use those
+    ALLOWED_HOSTS.extend(os.getenv('ALLOWED_HOSTS').split(','))
+
+# Add Render-specific domain if in production
+if not DEBUG:
+    ALLOWED_HOSTS.extend([
+        'ai-club-ssnk.onrender.com',
+        '.onrender.com',  # Allow any onrender.com subdomain in production
+    ])
 
 
 # Application definition
@@ -149,8 +157,11 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # CSRF & HTTPS Configuration for Production
 CSRF_TRUSTED_ORIGINS = [
     'https://ai-club-ssnk.onrender.com',
-    'https://*.onrender.com',
 ]
+
+# Add from environment if available
+if os.getenv('CSRF_TRUSTED_ORIGINS'):
+    CSRF_TRUSTED_ORIGINS.extend(os.getenv('CSRF_TRUSTED_ORIGINS').split(','))
 
 # Security Settings
 SECURE_SSL_REDIRECT = not DEBUG  # Enforce HTTPS in production
