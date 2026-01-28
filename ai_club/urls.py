@@ -18,11 +18,12 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import open_admin_login
+from .admin import admin_site, admin_login_view, admin_logout_view
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('admin/login/', open_admin_login, name='admin_login'),  # Open admin access
+    path('admin/', admin_site.urls),
+    path('admin/login/', admin_login_view, name='admin_login'),
+    path('admin/logout/', admin_logout_view, name='admin_logout'),
     path('assistant/', include('assistant.urls')),
     path('accounts/', include('accounts.urls')),
     path('events/', include('events.urls')),

@@ -12,4 +12,4 @@ def open_admin_login(request):
         return redirect('login')
     
     # Allow any authenticated user to access admin
-    return staff_member_required(lambda request: redirect('admin'))(request)
+    return redirect('admin')
