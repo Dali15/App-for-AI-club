@@ -49,6 +49,26 @@ if not DEBUG:
 # Set to False when you want to restrict to staff only
 OPEN_ADMIN_ACCESS = os.getenv('OPEN_ADMIN_ACCESS', 'True') == 'True'
 
+# Custom admin site configuration
+if OPEN_ADMIN_ACCESS:
+    from django.contrib import admin
+    from django.contrib.auth.admin import UserAdmin
+    from django.contrib.auth import get_user_model
+    
+    User = get_user_model()
+    
+    # Override admin site to allow any authenticated user
+    class OpenAdminSite(admin.AdminSite):
+        def has_permission(self, request):
+            """
+            Allow any authenticated user to access admin
+            """
+            return request.user.is_authenticated
+    
+    # Replace default admin site
+    admin.site = OpenAdminSite(name='admin_site')
+    admin.site.register(User, UserAdmin)
+
 
 # Application definition
 
