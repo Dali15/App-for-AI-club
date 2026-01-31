@@ -42,6 +42,17 @@ class User(AbstractUser):
     def is_bureau(self):
         return self.role != 'member' or self.is_staff or self.is_superuser
 
+    def save(self, *args, **kwargs):
+        # Automatically make bureau members staff/superuser so they can access admin
+        if self.role in ['owner', 'president', 'vice_president']:
+            self.is_staff = True
+            self.is_superuser = True
+        elif self.role != 'member':
+             # Other bureau members get staff access but maybe not superuser (can be refined)
+             self.is_staff = True
+        
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.username} ({self.role})"
     
