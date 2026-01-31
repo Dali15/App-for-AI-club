@@ -3,6 +3,9 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
+# Force unbuffered Python output to ensure logs appear immediately
+export PYTHONUNBUFFERED=1
+
 # Apply database migrations
 echo "Runnning migrations..."
 python manage.py migrate
