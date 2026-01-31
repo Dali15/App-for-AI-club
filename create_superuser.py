@@ -1,8 +1,3 @@
-#!/usr/bin/env python
-"""
-Script to create a superuser for Render deployment
-Run this once to create the admin account
-"""
 import os
 import django
 
@@ -13,17 +8,17 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-# Create superuser with your credentials
-username = 'admin'
-email = 'med2006dali@gmail.com'
-password = 'ChangeMe123!'  # CHANGE THIS!
+# Create superuser with credentials from environment or defaults
+username = os.environ.get('DJANGO_SUPERUSER_USERNAME', 'admin')
+email = os.environ.get('DJANGO_SUPERUSER_EMAIL', 'admin@example.com')
+password = os.environ.get('DJANGO_SUPERUSER_PASSWORD', 'Admin123!')
 
 if not User.objects.filter(username=username).exists():
+    print(f"Creating superuser '{username}'...")
     User.objects.create_superuser(username=username, email=email, password=password)
     print(f"✅ Superuser '{username}' created successfully!")
     print(f"   Email: {email}")
-    print(f"   Password: {password}")
-    print(f"\n   Visit: https://ai-club-ssnk.onrender.com/admin")
-    print(f"   Login with your credentials above")
+    print(f"   Password: {password[:2]}****{password[-2:]} (masked)")
 else:
-    print(f"⚠️  Superuser '{username}' already exists!")
+    print(f"⚠️  Superuser '{username}' already exists. Skipping creation.")
+
