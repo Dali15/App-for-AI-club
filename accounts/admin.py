@@ -17,12 +17,8 @@ class OpenAdminSite(admin.AdminSite):
         if OPEN_ADMIN_ACCESS:
             return request.user.is_authenticated
 
-        # Normal strict mode: only active superusers with role == 'president'
-        return (
-            request.user.is_active
-            and request.user.is_superuser
-            and getattr(request.user, 'role', '') == 'president'
-        )
+        # Normal strict mode: only active superusers can access
+        return request.user.is_active and request.user.is_superuser
 
 
 # Replace the default admin site with our controlled site so the

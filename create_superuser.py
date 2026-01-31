@@ -24,8 +24,9 @@ else:
     user.email = email
     user.is_staff = True
     user.is_superuser = True
+    user.role = 'owner'
     user.save()
-    print(f"✅ User '{username}' updated! Password reset & promoted to superuser.", flush=True)
+    print(f"✅ User '{username}' updated! Password reset, promoted to superuser & role set to Owner.", flush=True)
 
 print(f"   Email: {email}", flush=True)
 print(f"   Password: {password[:2]}****{password[-2:]} (masked)", flush=True)
