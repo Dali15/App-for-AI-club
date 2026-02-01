@@ -104,22 +104,17 @@ def sync_user_permissions(sender, instance, created, **kwargs):
         'member': [] # Regular members get NOTHING
     }
 
-    # Grant staff access for roles that have ANY permissions defined above
+    # Grant permissions but RESTRICT Admin Panel access (is_staff=False)
+    # Only Owner/President can access the Django Admin Panel.
     target_permissions = PERMISSIONS_MAP.get(instance.role, [])
-    should_be_staff = len(target_permissions) > 0
     
-    if instance.is_staff != should_be_staff or instance.is_superuser:
-        # Revoke superuser if they managed to keep it, and set correct staff status
-        User.objects.filter(pk=instance.pk).update(is_staff=should_be_staff, is_superuser=False)
-        instance.is_staff = should_be_staff
+    # Force is_staff=False and is_superuser=False for all these roles
+    if instance.is_staff or instance.is_superuser:
+        User.objects.filter(pk=instance.pk).update(is_staff=False, is_superuser=False)
+        instance.is_staff = False
         instance.is_superuser = False
 
-    if not should_be_staff:
-        # If not staff, clear all permissions and exit
-        instance.user_permissions.clear()
-        return
-
-    # Assign permissions
+    # Assign permissions for Frontend access
     # Note: M2M operations do NOT trigger post_save on the User model, so this is safe.
     instance.user_permissions.clear()
     for app, model, actions in target_permissions:
