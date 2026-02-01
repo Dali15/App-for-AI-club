@@ -13,14 +13,14 @@ class CustomUserAdmin(UserAdmin):
     """Custom User Admin with role management and member profile."""
     
     fieldsets = UserAdmin.fieldsets + (
-        ('Club Information', {'fields': ('role',)}),
+        ('Club Information', {'fields': ('role', 'secondary_role')}),
         ('Member Profile', {
             'fields': ('bio', 'profile_picture', 'skills', 'github_url', 'linkedin_url', 'phone'),
             'classes': ('collapse',)
         }),
     )
     
-    list_display = ('username', 'email', 'first_name', 'last_name', 'role', 'skills', 'is_active')
+    list_display = ('username', 'email', 'first_name', 'last_name', 'role', 'secondary_role', 'skills', 'is_active')
     list_filter = ('role', 'is_active', 'is_staff', 'date_joined')
     search_fields = ('username', 'email', 'first_name', 'last_name', 'skills')
     ordering = ('-date_joined',)

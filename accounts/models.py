@@ -16,6 +16,7 @@ class User(AbstractUser):
         ('partnerships', 'Responsable Partenariats'),
         ('design', 'Responsable Design'),
         ('treasurer', 'Treasurer'),
+        ('secretary', 'Secretaire'), # New Role
         ('hr', 'Responsable RH'),
         ('media', 'Responsable Media'),
         ('events_manager', 'Responsable Événement'),
@@ -25,7 +26,16 @@ class User(AbstractUser):
     role = models.CharField(
         max_length=20,
         choices=ROLE_CHOICES,
-        default='member'
+        default='member',
+        verbose_name="Primary Role"
+    )
+    
+    secondary_role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        blank=True,
+        null=True,
+        verbose_name="Secondary Role (Optional)"
     )
     
     # Member Profile Fields
@@ -40,14 +50,19 @@ class User(AbstractUser):
     updated_at = models.DateTimeField(auto_now=True)
 
     def is_bureau(self):
-        return self.role != 'member' or self.is_staff or self.is_superuser
+        # Bureau if either role is not member, or staff/superuser
+        is_primary_bureau = self.role != 'member'
+        is_secondary_bureau = self.secondary_role and self.secondary_role != 'member'
+        return is_primary_bureau or is_secondary_bureau or self.is_staff or self.is_superuser
 
     def save(self, *args, **kwargs):
         # Role permission enforcement is now handled by the post_save signal
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.username} ({self.role})"
+        if self.secondary_role:
+            return f"{self.username} ({self.get_role_display()} & {self.get_secondary_role_display()})"
+        return f"{self.username} ({self.get_role_display()})"
     
     class Meta:
         ordering = ['-created_at']
@@ -69,7 +84,14 @@ def sync_user_permissions(sender, instance, created, **kwargs):
 
     updates = {}
     
-    if instance.role in ['owner', 'president']:
+    # Check both roles for Owner/President status
+    roles = [instance.role]
+    if instance.secondary_role:
+        roles.append(instance.secondary_role)
+        
+    is_top_admin = 'owner' in roles or 'president' in roles
+    
+    if is_top_admin:
         # Ensure they are staff and superuser
         if not instance.is_staff or not instance.is_superuser:
             User.objects.filter(pk=instance.pk).update(is_staff=True, is_superuser=True)
@@ -87,6 +109,11 @@ def sync_user_permissions(sender, instance, created, **kwargs):
     PERMISSIONS_MAP = {
         'treasurer': [
             ('members', 'member', ['view']),  # Treasurer sees members only
+        ],
+        'secretary': [
+            ('members', 'member', ['view', 'change']),  # Secretary manages members
+            ('announcements', 'announcement', ['view', 'add', 'change']), # And announcements
+            ('events', 'event', ['view']), # Can view events logic
         ],
         'hr': [
             ('members', 'member', ['view', 'change']),  # HR sees and can edit members (e.g. profiles)
@@ -106,7 +133,18 @@ def sync_user_permissions(sender, instance, created, **kwargs):
 
     # Grant permissions but RESTRICT Admin Panel access (is_staff=False)
     # Only Owner/President can access the Django Admin Panel.
-    target_permissions = PERMISSIONS_MAP.get(instance.role, [])
+    
+    # Combine permissions from both roles
+    target_permissions = []
+    
+    # Add primary role perms
+    target_permissions.extend(PERMISSIONS_MAP.get(instance.role, []))
+    
+    # Add secondary role perms
+    if instance.secondary_role:
+        target_permissions.extend(PERMISSIONS_MAP.get(instance.secondary_role, []))
+    
+    # Force is_staff=False and is_superuser=False for all these roles
     
     # Force is_staff=False and is_superuser=False for all these roles
     if instance.is_staff or instance.is_superuser:
