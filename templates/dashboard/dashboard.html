@@ -83,7 +83,7 @@
                     <a href="{% url 'assistant:chat' %}" class="btn btn-info">
                         <i class="fas fa-comments"></i> Chat Personnel
                     </a>
-                    {% if user.is_staff %}
+                    {% if user.role == 'owner' or user.role == 'president' %}
                     <a href="{% url 'activity_history' %}" class="btn btn-info">
                         <i class="fas fa-history"></i> View History
                     </a>

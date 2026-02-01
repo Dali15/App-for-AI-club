@@ -88,6 +88,9 @@ def sync_user_permissions(sender, instance, created, **kwargs):
         'treasurer': [
             ('members', 'member', ['view']),  # Treasurer sees members only
         ],
+        'hr': [
+            ('members', 'member', ['view', 'change']),  # HR sees and can edit members (e.g. profiles)
+        ],
         'events_manager': [
             ('events', 'event', ['view', 'add', 'change', 'delete']),
             ('events', 'eventregistration', ['view', 'add', 'change']),

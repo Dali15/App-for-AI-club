@@ -18,6 +18,9 @@ python create_superuser.py
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
+# Sync role permissions for all users
+python manage.py sync_roles
+
 # Start Gunicorn
 echo "Starting Gunicorn..."
 gunicorn ai_club.wsgi:application
