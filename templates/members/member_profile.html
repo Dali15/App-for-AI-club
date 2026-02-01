@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="container my-5">
-    <!-- VERSION: 2.0.3 - FORCED CLEAN FIX -->
+    <!-- VERSION: 2.0.5 - FRESH RECREATION -->
     <div class="row">
         <!-- Member Profile Card -->
         <div class="col-md-4 mb-4">
@@ -59,7 +59,7 @@
                                             <label class="form-label">Primary Role</label>
                                             <select name="role" class="form-select">
                                                 {% for code, name in role_choices %}
-                                                <option value="{{ code }}" {% if member.role==code %}selected{% endif
+                                                <option value="{{ code }}" {% if member.role == code %}selected{% endif
                                                     %}>
                                                     {{ name }}
                                                 </option>
@@ -71,7 +71,7 @@
                                             <select name="secondary_role" class="form-select">
                                                 <option value="">-- None --</option>
                                                 {% for code, name in role_choices %}
-                                                <option value="{{ code }}" {% if member.secondary_role==code
+                                                <option value="{{ code }}" {% if member.secondary_role == code
                                                     %}selected{% endif %}>
                                                     {{ name }}
                                                 </option>
