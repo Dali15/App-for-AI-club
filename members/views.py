@@ -36,6 +36,7 @@ def member_list(request):
     return render(request, 'members/member_list.html', context)
 
 
+@login_required
 def member_profile(request, user_id):
     """Display member profile with skills, projects, and attendance."""
     member = get_object_or_404(User, id=user_id, is_active=True)
