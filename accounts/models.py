@@ -43,16 +43,7 @@ class User(AbstractUser):
         return self.role != 'member' or self.is_staff or self.is_superuser
 
     def save(self, *args, **kwargs):
-        # Enforce strict Role-Based Access Control for Admin Interface
-        # Only 'owner' and 'president' are allowed to access the admin panel.
-        if self.role in ['owner', 'president']:
-            self.is_staff = True
-            self.is_superuser = True
-        else:
-            # Revoke admin privileges for all other roles
-            self.is_staff = False
-            self.is_superuser = False
-        
+        # Role permission enforcement is now handled by the post_save signal
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -60,6 +51,75 @@ class User(AbstractUser):
     
     class Meta:
         ordering = ['-created_at']
+
+# Signal to sync roles with Django Groups and Permissions
+from django.db.models.signals import post_save, post_migrate
+from django.dispatch import receiver
+from django.contrib.auth.models import Group, Permission
+from django.contrib.contenttypes.models import ContentType
+
+@receiver(post_save, sender=User)
+def sync_user_permissions(sender, instance, created, **kwargs):
+    """
+    Automatically assign strict permissions based on role.
+    Run on every save to ensure role changes immediately update access.
+    """
+    if instance.role in ['owner', 'president']:
+        instance.is_staff = True
+        instance.is_superuser = True
+        instance.save_base(update_fields=['is_staff', 'is_superuser'])
+        return
+
+    # For other roles, they might need is_staff=True to access admin, 
+    # but we restrict what they can see via Groups.
+    
+    # Define Role-to-Permission Mapping
+    # Format: 'role_name': [('app_label', 'model_name', ['view', 'add', 'change', 'delete'])]
+    
+    PERMISSIONS_MAP = {
+        'treasurer': [
+            ('members', 'member', ['view']),  # Treasurer sees members only
+        ],
+        'events_manager': [
+            ('events', 'event', ['view', 'add', 'change', 'delete']),
+            ('events', 'eventregistration', ['view', 'add', 'change']),
+        ],
+        'media': [
+            ('announcements', 'announcement', ['view', 'add', 'change']),
+        ],
+        'partnerships': [
+            ('projects', 'project', ['view', 'add', 'change']),
+        ],
+        'member': [] # Regular members get NOTHING
+    }
+
+    # Grant staff access for roles that have ANY permissions defined above
+    target_permissions = PERMISSIONS_MAP.get(instance.role, [])
+    should_be_staff = len(target_permissions) > 0
+    
+    if instance.is_staff != should_be_staff:
+        instance.is_staff = should_be_staff
+        instance.save_base(update_fields=['is_staff'])
+
+    if not should_be_staff:
+        # If not staff, clear all permissions and exit
+        instance.user_permissions.clear()
+        return
+
+    # Assign permissions
+    instance.user_permissions.clear()
+    for app, model, actions in target_permissions:
+        try:
+            content_type = ContentType.objects.get(app_label=app, model=model)
+            for action in actions:
+                codename = f'{action}_{model}'
+                try:
+                    perm = Permission.objects.get(content_type=content_type, codename=codename)
+                    instance.user_permissions.add(perm)
+                except Permission.DoesNotExist:
+                    pass
+        except ContentType.DoesNotExist:
+            continue
 
 
 class RolePermission(models.Model):
