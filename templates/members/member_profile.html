@@ -23,7 +23,7 @@
                     <!-- Basic Info -->
                     <h3>{{ member.get_full_name|default:member.username }}</h3>
                     <p class="text-muted">@{{ member.username }}</p>
-                    <span class="badge bg-primary">{{ member.role }}</span>
+                    <span class="badge bg-primary">{{ member.get_role_display }}</span>
 
                     <!-- Edit Profile Button (if own profile) -->
                     {% if user == member %}
