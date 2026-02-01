@@ -17,11 +17,9 @@ def announcement_list(request):
     # If user is staff (Owner/President), or has specific permissions, maybe show all? 
     # Or keep list clean and have separate 'Pending' view.
     # Let's show OWN pending announcements so they know it's submitted.
+    my_pending = None
     if request.user.is_authenticated:
         my_pending = Announcement.objects.filter(author=request.user, is_approved=False)
-        # Combine? Or just list approved. 
-        # Requirement: "able membre bureau write an anouncement and the precident have interface whish can accept"
-        # So Main List = Approved.
     
     announcements = announcements.order_by('-created_at')
     
@@ -35,8 +33,8 @@ def announcement_list(request):
     context = {
         'announcements': announcements,
         'search_query': search_query,
-        # Flag to show "Review Pending" button to President
-        'can_review': request.user.role in ['owner', 'president'],
+        'can_review': request.user.is_authenticated and request.user.role in ['owner', 'president'],
+        'my_pending': my_pending,
     }
     return render(request, 'announcements/announcement_list.html', context)
 

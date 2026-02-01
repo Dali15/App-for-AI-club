@@ -40,6 +40,21 @@
     </div>
 </div>
 
+{% if my_pending %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-warning">
+            <h5><i class="fas fa-clock"></i> Your Pending Announcements</h5>
+            <ul class="mb-0">
+                {% for p in my_pending %}
+                <li><strong>{{ p.title }}</strong> - <em>submitted on {{ p.created_at|date:"M d, H:i" }}</em></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 {% if announcements %}
 <div class="row">
     {% for a in announcements %}
