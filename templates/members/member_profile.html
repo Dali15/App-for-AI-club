@@ -59,8 +59,7 @@
                                             <label class="form-label">Primary Role</label>
                                             <select name="role" class="form-select">
                                                 {% for code, name in role_choices %}
-                                                <option value="{{ code }}" {% if member.role==code %}selected{% endif
-                                                    %}>{{ name }}</option>
+                                                <option value="{{ code }}" {% if member.role == code %}selected{% endif %}>{{ name }}</option>
                                                 {% endfor %}
                                             </select>
                                         </div>
@@ -69,8 +68,7 @@
                                             <select name="secondary_role" class="form-select">
                                                 <option value="">-- None --</option>
                                                 {% for code, name in role_choices %}
-                                                <option value="{{ code }}" {% if member.secondary_role==code
-                                                    %}selected{% endif %}>{{ name }}</option>
+                                                <option value="{{ code }}" {% if member.secondary_role == code %}selected{% endif %}>{{ name }}</option>
                                                 {% endfor %}
                                             </select>
                                         </div>
@@ -188,8 +186,7 @@
             {% if registered_events %}
             <div class="card shadow-lg">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-calendar-check"></i> Upcoming Events ({{ registered_events.count
-                        }})</h5>
+                    <h5 class="mb-0"><i class="fas fa-calendar-check"></i> Upcoming Events ({{ registered_events.count }})</h5>
                 </div>
                 <div class="card-body">
                     <div class="list-group">
