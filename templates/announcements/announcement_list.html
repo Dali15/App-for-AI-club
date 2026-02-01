@@ -79,9 +79,11 @@
 {% else %}
 <div class="alert alert-info" role="alert">
     <i class="fas fa-info-circle"></i>
-    <strong>{% if search_query %}No announcements found matching "{{ search_query }}"!{% else %}No Announcements Yet!{%
-        endif %}</strong>
-    {% if not search_query %}Check back for important updates.{% endif %}
+    {% if search_query %}
+    <strong>No announcements found matching "{{ search_query }}"!</strong>
+    {% else %}
+    <strong>No Announcements Yet!</strong> Check back for important updates.
+    {% endif %}
 </div>
 {% endif %}
 
