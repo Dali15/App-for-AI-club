@@ -59,10 +59,8 @@
                                             <label class="form-label">Primary Role</label>
                                             <select name="role" class="form-select">
                                                 {% for code, name in role_choices %}
-                                                <option value="{{ code }}" {% if member.role == code %}selected{% endif
-                                                    %}>
-                                                    {{ name }}
-                                                </option>
+                                                <option value="{{ code }}" {% if member.role==code %}selected{% endif
+                                                    %}>{{ name }}</option>
                                                 {% endfor %}
                                             </select>
                                         </div>
@@ -71,10 +69,8 @@
                                             <select name="secondary_role" class="form-select">
                                                 <option value="">-- None --</option>
                                                 {% for code, name in role_choices %}
-                                                <option value="{{ code }}" {% if member.secondary_role == code
-                                                    %}selected{% endif %}>
-                                                    {{ name }}
-                                                </option>
+                                                <option value="{{ code }}" {% if member.secondary_role==code
+                                                    %}selected{% endif %}>{{ name }}</option>
                                                 {% endfor %}
                                             </select>
                                         </div>
