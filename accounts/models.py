@@ -108,15 +108,20 @@ def sync_user_permissions(sender, instance, created, **kwargs):
     
     PERMISSIONS_MAP = {
         'treasurer': [
-            ('accounts', 'user', ['view']),  # Treasurer sees members (User objects)
+            ('accounts', 'user', ['view']), 
+            ('dashboard', 'clubdocument', ['view']), # Can view financial docs if uploaded there
         ],
         'secretary': [
-            ('accounts', 'user', ['view', 'change']),  # Secretary manages members (User objects)
-            ('announcements', 'announcement', ['view', 'add', 'change']), # And announcements
-            ('events', 'event', ['view']), 
+            ('accounts', 'user', ['view', 'change']),
+            ('announcements', 'announcement', ['view', 'add', 'change']),
+            ('events', 'event', ['view']),
+            ('dashboard', 'clubdocument', ['view', 'add', 'change', 'delete']), # Manage Documents
+            ('dashboard', 'contactinquiry', ['view', 'change']), # Handle inquiries
+            ('dashboard', 'sitecontent', ['view', 'change']), # Page Editing
         ],
         'hr': [
-            ('accounts', 'user', ['view', 'change']),  # HR sees and can edit members (e.g. profiles)
+            ('accounts', 'user', ['view', 'change']),
+            ('dashboard', 'contactinquiry', ['view']), # View inquiries related to recruitment?
         ],
         'events_manager': [
             ('events', 'event', ['view', 'add', 'change', 'delete']),
@@ -124,11 +129,17 @@ def sync_user_permissions(sender, instance, created, **kwargs):
         ],
         'media': [
             ('announcements', 'announcement', ['view', 'add', 'change']),
+            ('dashboard', 'broadcastmessage', ['view', 'add', 'change']), # Mass Email
+            ('dashboard', 'sitecontent', ['view', 'change']), # Edit site pages
+            ('dashboard', 'contactinquiry', ['view']), # View media inquiries
         ],
         'partnerships': [
             ('projects', 'project', ['view', 'add', 'change']),
+            ('dashboard', 'contactinquiry', ['view', 'change']), # Manage partnership inquiries
         ],
-        'member': [] # Regular members get NOTHING
+        'member': [
+             ('dashboard', 'clubdocument', ['view']), # Members can view public documents (handled by view logic, but good to have perm)
+        ] 
     }
 
     # Grant permissions but RESTRICT Admin Panel access (is_staff=False)

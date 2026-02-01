@@ -5,12 +5,26 @@ from .models import Announcement
 from accounts.decorators import roles_required
 from .forms import AnnouncementForm
 
+from django.contrib import messages
+from django.shortcuts import get_object_or_404
+
 @login_required
 def announcement_list(request):
     """Display list of announcements with search functionality."""
-    announcements = Announcement.objects.all().order_by('-created_at')
+    # By default, show only approved announcements
+    announcements = Announcement.objects.filter(is_approved=True)
     
-    # Search functionality
+    # If user is staff (Owner/President), or has specific permissions, maybe show all? 
+    # Or keep list clean and have separate 'Pending' view.
+    # Let's show OWN pending announcements so they know it's submitted.
+    if request.user.is_authenticated:
+        my_pending = Announcement.objects.filter(author=request.user, is_approved=False)
+        # Combine? Or just list approved. 
+        # Requirement: "able membre bureau write an anouncement and the precident have interface whish can accept"
+        # So Main List = Approved.
+    
+    announcements = announcements.order_by('-created_at')
+    
     search_query = request.GET.get('search', '')
     if search_query:
         announcements = announcements.filter(
@@ -21,19 +35,71 @@ def announcement_list(request):
     context = {
         'announcements': announcements,
         'search_query': search_query,
+        # Flag to show "Review Pending" button to President
+        'can_review': request.user.role in ['owner', 'president'],
     }
     return render(request, 'announcements/announcement_list.html', context)
 
 @login_required
-@roles_required(['owner', 'president', 'vice_president', 'media', 'hr', 'partnerships'])
+@roles_required(['owner', 'president', 'vice_president', 'media', 'hr', 'partnerships', 'secretary', 'treasurer'])
 def create_announcement(request):
-    """Create a new announcement. President, VP, Media, HR, and Partnerships can create."""
+    """
+    Create a new announcement. 
+    - Owner/President: Auto-approved.
+    - Others: Status = Pending.
+    """
     if request.method == 'POST':
         form = AnnouncementForm(request.POST)
         if form.is_valid():
-            form.save()
+            announcement = form.save(commit=False)
+            announcement.author = request.user
+            
+            # Auto-approve for Top Admins
+            if request.user.role in ['owner', 'president']:
+                announcement.is_approved = True
+                message = "Announcement published successfully!"
+            else:
+                announcement.is_approved = False
+                message = "Announcement submitted for approval. The President will review it shortly."
+            
+            announcement.save()
+            messages.success(request, message)
             return redirect('announcement_list')
     else:
         form = AnnouncementForm()
 
     return render(request, 'announcements/create_announcement.html', {'form': form})
+
+@login_required
+def pending_announcements(request):
+    """Interface for President to accept/reject announcements."""
+    if request.user.role not in ['owner', 'president']:
+        messages.error(request, "Access denied.")
+        return redirect('announcement_list')
+        
+    pending = Announcement.objects.filter(is_approved=False).order_by('created_at')
+    
+    return render(request, 'announcements/pending_announcements.html', {'pending_announcements': pending})
+
+@login_required
+def approve_announcement(request, pk):
+    """Approve execution."""
+    if request.user.role not in ['owner', 'president']:
+         return redirect('announcement_list')
+         
+    announcement = get_object_or_404(Announcement, pk=pk)
+    announcement.is_approved = True
+    announcement.save()
+    messages.success(request, f"Announcement '{announcement.title}' approved.")
+    return redirect('pending_announcements')
+
+@login_required
+def reject_announcement(request, pk):
+    """Reject execution."""
+    if request.user.role not in ['owner', 'president']:
+         return redirect('announcement_list')
+         
+    announcement = get_object_or_404(Announcement, pk=pk)
+    announcement.delete() # Or set status='rejected' if we had a status field. For now delete.
+    messages.success(request, f"Announcement '{announcement.title}' rejected (deleted).")
+    return redirect('pending_announcements')
