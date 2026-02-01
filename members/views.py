@@ -36,38 +36,31 @@ def member_list(request):
     return render(request, 'members/member_list.html', context)
 
 
-import traceback
-from django.http import HttpResponse
-
 @login_required
 def member_profile(request, user_id):
     """Display member profile with skills, projects, and attendance."""
-    try:
-        member = get_object_or_404(User, id=user_id, is_active=True)
-        
-        # Get attendance info
-        attended_events = EventRegistration.objects.filter(
-            user=member, 
-            attended=True
-        ).select_related('event').order_by('-event__date')
-        
-        registered_events = EventRegistration.objects.filter(
-            user=member,
-            attended=False
-        ).select_related('event').order_by('event__date')
-        
-        context = {
-            'member': member,
-            'attended_events': attended_events,
-            'registered_events': registered_events,
-            'total_attended': attended_events.count(),
-            'can_manage_roles': request.user.has_perm('accounts.change_user'),
-            'role_choices': User.ROLE_CHOICES,
-        }
-        return render(request, 'members/member_profile.html', context)
-    except Exception:
-        error_info = traceback.format_exc()
-        return HttpResponse(f"<h1>Debug Error</h1><pre>{error_info}</pre>", status=500)
+    member = get_object_or_404(User, id=user_id, is_active=True)
+    
+    # Get attendance info
+    attended_events = EventRegistration.objects.filter(
+        user=member, 
+        attended=True
+    ).select_related('event').order_by('-event__date')
+    
+    registered_events = EventRegistration.objects.filter(
+        user=member,
+        attended=False
+    ).select_related('event').order_by('event__date')
+    
+    context = {
+        'member': member,
+        'attended_events': attended_events,
+        'registered_events': registered_events,
+        'total_attended': attended_events.count(),
+        'can_manage_roles': request.user.has_perm('accounts.change_user'),
+        'role_choices': User.ROLE_CHOICES,
+    }
+    return render(request, 'members/member_profile.html', context)
 
 @login_required
 def manage_user_role(request, user_id):
