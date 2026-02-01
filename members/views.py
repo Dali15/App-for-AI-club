@@ -56,8 +56,38 @@ def member_profile(request, user_id):
         'attended_events': attended_events,
         'registered_events': registered_events,
         'total_attended': attended_events.count(),
+        'can_manage_roles': request.user.has_perm('accounts.change_user'),
+        'role_choices': User.ROLE_CHOICES,
     }
     return render(request, 'members/member_profile.html', context)
+
+@login_required
+def manage_user_role(request, user_id):
+    """Update user role - requires change_user permission."""
+    if not request.user.has_perm('accounts.change_user'):
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+        
+    if request.method == 'POST':
+        target_user = get_object_or_404(User, id=user_id)
+        new_role = request.POST.get('role')
+        new_secondary_role = request.POST.get('secondary_role')
+        
+        # Prevent editing Owner if you are not Owner
+        if target_user.role == 'owner' and request.user.role != 'owner':
+             messages.error(request, "Only the Owner can modify the Owner's role.")
+             return redirect('member_profile', user_id=user_id)
+        
+        if new_role:
+            target_user.role = new_role
+        
+        # secondary_role can be empty
+        target_user.secondary_role = new_secondary_role if new_secondary_role else ''
+        
+        target_user.save() # Signal triggers permission update
+        messages.success(request, f"Role for {target_user.username} updated to {target_user.get_role_display()}")
+        
+    return redirect('member_profile', user_id=user_id)
 
 
 @login_required
