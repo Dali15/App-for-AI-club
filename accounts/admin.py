@@ -3,29 +3,6 @@ from django.contrib.auth.admin import UserAdmin
 from .models import User, RolePermission
 import os
 
-# Control admin access via `OPEN_ADMIN_ACCESS` env var.
-# - If OPEN_ADMIN_ACCESS=True, any authenticated user can access admin (temporary).
-# - Otherwise, only superusers with role 'president' can access.
-OPEN_ADMIN_ACCESS = os.getenv('OPEN_ADMIN_ACCESS', 'False') == 'True'
-
-
-class OpenAdminSite(admin.AdminSite):
-    """Admin site whose permission logic is environment-controlled."""
-
-    def has_permission(self, request):
-        # If explicitly opened, allow any authenticated user (temporary use only).
-        if OPEN_ADMIN_ACCESS:
-            return request.user.is_authenticated
-
-        # Normal strict mode: only active superusers can access
-        return request.user.is_active and request.user.is_superuser
-
-
-# Replace the default admin site with our controlled site so the
-# permission check above is enforced consistently in all environments.
-admin.site = OpenAdminSite(name='admin_site')
-
-
 # Customize admin site
 admin.site.site_header = "🎓 AI Club Admin Panel"
 admin.site.site_title = "AI Club Admin"
