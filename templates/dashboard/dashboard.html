@@ -104,6 +104,9 @@
                     <a href="{% url 'pending_members' %}" class="btn btn-primary">
                         <i class="fas fa-user-clock"></i> Approve Members
                     </a>
+                    <a href="{% url 'pending_announcements' %}" class="btn btn-warning">
+                        <i class="fas fa-bullhorn"></i> Approve Announcements
+                    </a>
                     {% endif %}
 
                     {% if perms.announcements.add_announcement %}
