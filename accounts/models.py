@@ -64,10 +64,18 @@ def sync_user_permissions(sender, instance, created, **kwargs):
     Automatically assign strict permissions based on role.
     Run on every save to ensure role changes immediately update access.
     """
+    if kwargs.get('raw', False):
+        return
+
+    updates = {}
+    
     if instance.role in ['owner', 'president']:
-        instance.is_staff = True
-        instance.is_superuser = True
-        instance.save_base(update_fields=['is_staff', 'is_superuser'])
+        # Ensure they are staff and superuser
+        if not instance.is_staff or not instance.is_superuser:
+            User.objects.filter(pk=instance.pk).update(is_staff=True, is_superuser=True)
+            # Update instance in memory to reflect change (though purely local here)
+            instance.is_staff = True
+            instance.is_superuser = True
         return
 
     # For other roles, they might need is_staff=True to access admin, 
@@ -97,9 +105,11 @@ def sync_user_permissions(sender, instance, created, **kwargs):
     target_permissions = PERMISSIONS_MAP.get(instance.role, [])
     should_be_staff = len(target_permissions) > 0
     
-    if instance.is_staff != should_be_staff:
+    if instance.is_staff != should_be_staff or instance.is_superuser:
+        # Revoke superuser if they managed to keep it, and set correct staff status
+        User.objects.filter(pk=instance.pk).update(is_staff=should_be_staff, is_superuser=False)
         instance.is_staff = should_be_staff
-        instance.save_base(update_fields=['is_staff'])
+        instance.is_superuser = False
 
     if not should_be_staff:
         # If not staff, clear all permissions and exit
@@ -107,6 +117,7 @@ def sync_user_permissions(sender, instance, created, **kwargs):
         return
 
     # Assign permissions
+    # Note: M2M operations do NOT trigger post_save on the User model, so this is safe.
     instance.user_permissions.clear()
     for app, model, actions in target_permissions:
         try:
