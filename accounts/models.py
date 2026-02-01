@@ -108,15 +108,15 @@ def sync_user_permissions(sender, instance, created, **kwargs):
     
     PERMISSIONS_MAP = {
         'treasurer': [
-            ('members', 'member', ['view']),  # Treasurer sees members only
+            ('accounts', 'user', ['view']),  # Treasurer sees members (User objects)
         ],
         'secretary': [
-            ('members', 'member', ['view', 'change']),  # Secretary manages members
+            ('accounts', 'user', ['view', 'change']),  # Secretary manages members (User objects)
             ('announcements', 'announcement', ['view', 'add', 'change']), # And announcements
-            ('events', 'event', ['view']), # Can view events logic
+            ('events', 'event', ['view']), 
         ],
         'hr': [
-            ('members', 'member', ['view', 'change']),  # HR sees and can edit members (e.g. profiles)
+            ('accounts', 'user', ['view', 'change']),  # HR sees and can edit members (e.g. profiles)
         ],
         'events_manager': [
             ('events', 'event', ['view', 'add', 'change', 'delete']),
