@@ -1,6 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from .views import signup_view
+from . import views
 
 urlpatterns = [
     path(
@@ -15,7 +15,10 @@ urlpatterns = [
     ),
     path(
         'signup/',
-        signup_view,
+        views.signup_view,
         name='signup'
     ),
+    path('pending-members/', views.pending_members, name='pending_members'),
+    path('approve-member/<int:user_id>/', views.approve_member, name='approve_member'),
+    path('reject-member/<int:user_id>/', views.reject_member, name='reject_member'),
 ]

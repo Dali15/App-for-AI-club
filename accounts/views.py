@@ -5,6 +5,10 @@ from .forms import CustomUserCreationForm
 import os
 
 
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404
+from .models import User
+
 def signup_view(request):
     """User registration/signup view."""
     if request.user.is_authenticated:
@@ -13,24 +17,26 @@ def signup_view(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-
-            # If OPEN_ADMIN_ACCESS is enabled on the deployment and there
-            # are currently no superusers, promote the first created user
-            # to superuser/staff so they can access the admin and make
-            # configuration changes. This is temporary — set
-            # OPEN_ADMIN_ACCESS=False once you've restored normal access.
-            if os.getenv('OPEN_ADMIN_ACCESS', 'True') == 'True':
-                User = get_user_model()
-                if not User.objects.filter(is_superuser=True).exists():
-                    user.is_staff = True
-                    user.is_superuser = True
-                    user.save()
-
-            # Log the user in after signup
-            login(request, user)
-            messages.success(request, f'Welcome {user.username}! Your account has been created successfully.')
-            return redirect('dashboard')
+            user = form.save(commit=False)
+            
+            # Special case: First user ever becomes Owner/Superuser automatically (active)
+            User = get_user_model()
+            if not User.objects.exists():
+                user.is_active = True
+                user.is_staff = True
+                user.is_superuser = True
+                user.role = 'owner'
+                user.save()
+                login(request, user)
+                messages.success(request, f'Welcome Owner {user.username}! Setup complete.')
+                return redirect('dashboard')
+            
+            # Default behavior: Pending Approval
+            user.is_active = False 
+            user.save()
+            
+            messages.info(request, f'Account created for {user.username}! Please wait for an Admin to approve your account before you can log in.')
+            return redirect('login')
         else:
             for field, errors in form.errors.items():
                 for error in errors:
@@ -39,3 +45,38 @@ def signup_view(request):
         form = CustomUserCreationForm()
     
     return render(request, 'accounts/signup.html', {'form': form})
+
+@login_required
+def pending_members(request):
+    """List members waiting for approval."""
+    if request.user.role not in ['owner', 'president']:
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+        
+    # Pending members are those with is_active=False (but not if they were banned? Assuming inactive = pending for now)
+    pending_users = User.objects.filter(is_active=False).order_by('-date_joined')
+    
+    return render(request, 'accounts/pending_members.html', {'pending_users': pending_users})
+
+@login_required
+def approve_member(request, user_id):
+    """Approve a member."""
+    if request.user.role not in ['owner', 'president']:
+        return redirect('dashboard')
+        
+    user = get_object_or_404(User, id=user_id)
+    user.is_active = True
+    user.save()
+    messages.success(request, f"User {user.username} approved successfully.")
+    return redirect('pending_members')
+
+@login_required
+def reject_member(request, user_id):
+    """Reject (delete) a member."""
+    if request.user.role not in ['owner', 'president']:
+        return redirect('dashboard')
+        
+    user = get_object_or_404(User, id=user_id)
+    user.delete()
+    messages.success(request, f"User {user.username} rejected (deleted).")
+    return redirect('pending_members')
