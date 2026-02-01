@@ -8,35 +8,42 @@ from .forms import AnnouncementForm
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
 
+import traceback
+from django.http import HttpResponse
+
 @login_required
 def announcement_list(request):
     """Display list of announcements with search functionality."""
-    # By default, show only approved announcements
-    announcements = Announcement.objects.filter(is_approved=True)
-    
-    # If user is staff (Owner/President), or has specific permissions, maybe show all? 
-    # Or keep list clean and have separate 'Pending' view.
-    # Let's show OWN pending announcements so they know it's submitted.
-    my_pending = None
-    if request.user.is_authenticated:
-        my_pending = Announcement.objects.filter(author=request.user, is_approved=False)
-    
-    announcements = announcements.order_by('-created_at')
-    
-    search_query = request.GET.get('search', '')
-    if search_query:
-        announcements = announcements.filter(
-            Q(title__icontains=search_query) | 
-            Q(content__icontains=search_query)
-        )
-    
-    context = {
-        'announcements': announcements,
-        'search_query': search_query,
-        'can_review': request.user.is_authenticated and request.user.role in ['owner', 'president'],
-        'my_pending': my_pending,
-    }
-    return render(request, 'announcements/announcement_list.html', context)
+    try:
+        # By default, show only approved announcements
+        announcements = Announcement.objects.filter(is_approved=True)
+        
+        # If user is staff (Owner/President), or has specific permissions, maybe show all? 
+        # Or keep list clean and have separate 'Pending' view.
+        # Let's show OWN pending announcements so they know it's submitted.
+        my_pending = None
+        if request.user.is_authenticated:
+            my_pending = Announcement.objects.filter(author=request.user, is_approved=False)
+        
+        announcements = announcements.order_by('-created_at')
+        
+        search_query = request.GET.get('search', '')
+        if search_query:
+            announcements = announcements.filter(
+                Q(title__icontains=search_query) | 
+                Q(content__icontains=search_query)
+            )
+        
+        context = {
+            'announcements': announcements,
+            'search_query': search_query,
+            'can_review': request.user.is_authenticated and request.user.role in ['owner', 'president'],
+            'my_pending': my_pending,
+        }
+        return render(request, 'announcements/announcement_list.html', context)
+    except Exception as e:
+        error_info = traceback.format_exc()
+        return HttpResponse(f"<h1>Debug Error</h1><pre>{error_info}</pre>", status=500)
 
 @login_required
 @roles_required(['owner', 'president', 'vice_president', 'media', 'hr', 'partnerships', 'secretary', 'treasurer'])
