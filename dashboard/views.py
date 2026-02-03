@@ -190,3 +190,31 @@ def view_role_permissions_view(request, role=None):
     }
     
     return render(request, 'dashboard/view_role_permissions.html', context)
+
+
+@staff_member_required
+def manage_member_roles_view(request):
+    """Admin page to search and manage roles for all members."""
+    search_query = request.GET.get('search', '').strip()
+
+    # Get all members or filter by search
+    if search_query:
+        members = Member.objects.filter(
+            Q(user__first_name__icontains=search_query) |
+            Q(user__last_name__icontains=search_query) |
+            Q(user__username__icontains=search_query) |
+            Q(user__email__icontains=search_query)
+        ).select_related('user').order_by('user__first_name', 'user__last_name')
+    else:
+        members = Member.objects.all().select_related('user').order_by('user__first_name', 'user__last_name')
+
+    # Get role choices from the Member model
+    role_choices = Member.ROLE_CHOICES
+
+    context = {
+        'members': members,
+        'role_choices': role_choices,
+        'search_query': search_query,
+    }
+
+    return render(request, 'admin/manage_member_roles.html', context)
