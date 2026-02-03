@@ -126,7 +126,7 @@ if os.getenv('DATABASE_URL'):
         'default': dj_database_url.config(default=os.getenv('DATABASE_URL'), conn_max_age=600)
     }
 else:
-    print("⚠️  DATABASE_URL not found. Using SQLite (Ephemeral!). Data will be lost on deploy.", flush=True)
+    print("WARNING: DATABASE_URL not found. Using SQLite (Ephemeral!). Data will be lost on deploy.", flush=True)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -135,7 +135,7 @@ else:
     }
 
 if os.getenv('DATABASE_URL'):
-    print("✅ DATABASE_URL found. Using PostgreSQL for persistence.", flush=True)
+    print("OK: DATABASE_URL found. Using PostgreSQL for persistence.", flush=True)
 
 
 # Password validation
@@ -174,6 +174,12 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
+# Use WhiteNoise with compression for serving static files in production
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media Files Configuration
 MEDIA_URL = 'media/'
@@ -206,4 +212,3 @@ LOGOUT_REDIRECT_URL = 'login'
 # AI Assistant Settings
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
 USE_AI_API = os.getenv('USE_AI_API', 'False') == 'True'
-
