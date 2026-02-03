@@ -1,20 +1,5 @@
-{% extends "admin/base_site.html" %}
-{% load i18n %}
+{% extends "admin/index.html" %}
 
-{% block content %}
-<div id="content-main">
+{# Use Django's default admin index to show the app list and modules. #}
 
-  <h1>{% trans 'Dashboard' %}</h1>
-
-  <div class="module">
-    <table>
-      <tbody>
-        <tr>
-          <td>Manage all your club data from this admin panel.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-</div>
-{% endblock %}
+{# No custom content here so the default app list and dashboard will render correctly on all devices. #}

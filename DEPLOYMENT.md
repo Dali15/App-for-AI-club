@@ -97,6 +97,22 @@ bash start.sh
 git push origin main
 ```
 
+### Option 3: Trigger via Render API (script)
+You can trigger a deploy from your machine using Render's API. Create an API key in Render (Service -> API Keys) and set two env vars locally:
+
+```bash
+export RENDER_API_KEY="<your_render_api_key>"
+export RENDER_SERVICE_ID="<your_render_service_id>"
+```
+
+Then run the included script:
+
+```bash
+./render_trigger.sh
+```
+
+The script will POST to Render's deploy endpoint to start a manual deploy and clear the service cache.
+
 ---
 
 ## Troubleshooting
