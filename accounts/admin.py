@@ -3,8 +3,23 @@ from django.contrib.auth.admin import UserAdmin
 from .models import User, RolePermission
 import os
 
-# Customize admin site
-admin.site.site_header = "🎓 AI Club Admin Panel"
+
+class CustomAdminSite(admin.AdminSite):
+    """Custom Admin Site Configuration"""
+    site_header = "AI Club Admin Panel"
+    site_title = "AI Club Admin"
+    index_title = "Welcome to AI Club Management"
+    
+    # Enable mobile responsive design
+    enable_nav_sidebar = True
+
+
+# Replace default admin site with custom one
+# admin.site = CustomAdminSite(name='admin')
+
+
+# Customize admin site header
+admin.site.site_header = "AI Club Admin Panel"
 admin.site.site_title = "AI Club Admin"
 admin.site.index_title = "Welcome to AI Club Management"
 

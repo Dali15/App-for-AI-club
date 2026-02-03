@@ -1,0 +1,77 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Mobile optimized admin list view */
+    @media (max-width: 768px) {
+        #changelist {
+            width: 100%;
+            margin: 0;
+        }
+        
+        .results {
+            width: 100%;
+            overflow-x: auto;
+        }
+        
+        .results table {
+            min-width: 100%;
+            font-size: 0.9em;
+        }
+        
+        .results th, .results td {
+            padding: 8px 5px;
+        }
+        
+        /* Hide less important columns on mobile */
+        .column-date_joined,
+        .column-created_at,
+        .column-updated_at {
+            display: none;
+        }
+        
+        /* Stack action buttons vertically on mobile */
+        .submit-row {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .submit-row input {
+            width: 100%;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .results table {
+            font-size: 0.8em;
+        }
+        
+        .results th, .results td {
+            padding: 5px 3px;
+        }
+        
+        /* Only show main columns on very small screens */
+        .column-email,
+        .column-description,
+        .column-preview {
+            display: none;
+        }
+    }
+    
+    /* Better touch targets on mobile */
+    @media (hover: none) and (pointer: coarse) {
+        a, button, input[type="submit"] {
+            padding: 12px 15px;
+            font-size: 1em;
+        }
+        
+        .object-tools a {
+            padding: 10px 15px;
+            margin: 5px 0;
+        }
+    }
+</style>
+{% endblock %}

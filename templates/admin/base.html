@@ -1,0 +1,94 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Mobile Responsive Admin Interface */
+    @media (max-width: 768px) {
+        #header {
+            padding: 10px 15px;
+        }
+        
+        #header h1 {
+            font-size: 1.5em;
+        }
+        
+        #sidebar {
+            display: none; /* Hide sidebar on mobile, show toggle */
+        }
+        
+        #content {
+            margin-left: 0;
+            width: 100%;
+        }
+        
+        .module {
+            margin: 10px 0;
+        }
+        
+        table {
+            font-size: 0.9em;
+        }
+        
+        .submit-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .submit-row input {
+            flex: 1;
+            min-width: 100px;
+        }
+        
+        .fieldBox {
+            margin: 10px 0;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        #header {
+            padding: 8px 10px;
+        }
+        
+        #header h1 {
+            font-size: 1.2em;
+        }
+        
+        table {
+            font-size: 0.8em;
+        }
+        
+        .actions {
+            margin: 10px 0;
+        }
+    }
+    
+    /* Ensure list display is readable on mobile */
+    .change-list-table {
+        width: 100%;
+        overflow-x: auto;
+        display: block;
+    }
+    
+    /* Fix button styling on mobile */
+    .button, input[type="submit"], input[type="button"] {
+        padding: 10px 15px;
+        font-size: 1em;
+        cursor: pointer;
+    }
+    
+    /* Better form field layout on mobile */
+    .form-row {
+        display: block;
+        margin-bottom: 10px;
+    }
+    
+    .form-row label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
