@@ -18,7 +18,8 @@
 | 📅 **Event Management** | Create, manage, and register for events |
 | 👥 **Member Directory** | Connect with community members and view profiles |
 | 🔐 **Role-Based Access** | Admin, moderator, and member permission levels |
-| 📊 **Activity Logging** | Track all user interactions and engagement |
+| �‍💼 **Admin Member Management** | Search & manage member roles with inline forms |
+| �📊 **Activity Logging** | Track all user interactions and engagement |
 | 📱 **Responsive Design** | Works perfectly on desktop, tablet, and mobile |
 | 🎨 **Modern UI** | Beautiful gradient design with smooth interactions |  
 
@@ -203,7 +204,14 @@ ai-club/
 - Role-based visibility
 - Member statistics
 
-### 🔐 Security
+### �‍💼 Admin Member Management
+- **Access:** `/admin/manage-member-roles/` (staff/admin only)
+- Search members by name, username, or email
+- Collapsible inline forms for role management
+- Update primary and secondary roles instantly
+- Smooth UX with no modal flickering
+
+### �🔐 Security
 - User authentication
 - Role-based permissions (Admin, Moderator, Member)
 - CSRF protection
