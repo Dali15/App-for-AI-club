@@ -14,8 +14,13 @@
             font-size: 1.5em;
         }
         
+        /* Keep sidebar visible on mobile, make it scrollable so apps stay accessible */
         #sidebar {
-            display: none; /* Hide sidebar on mobile, show toggle */
+            display: block;
+            max-height: 220px;
+            overflow-y: auto;
+            margin-bottom: 12px;
+            -webkit-overflow-scrolling: touch;
         }
         
         #content {
