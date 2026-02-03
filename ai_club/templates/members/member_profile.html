@@ -1,0 +1,380 @@
+{% extends "base.html" %}
+
+{% block title %}{{ member.get_full_name|default:member.username }} - AI Club{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <div class="row">
+    <div class="col-lg-4 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-body text-center">
+          {% if member.profile_picture %}
+          <img src="{{ member.profile_picture.url }}" alt="{{ member.username }}" class="rounded-circle" style="width:130px;height:130px;object-fit:cover;border:3px solid #0d47a1;">
+          {% else %}
+          <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:130px;height:130px;background:linear-gradient(135deg,#0d47a1 0%,#1e88e5 100%);margin:0 auto;color:#fff;font-size:2rem;border:3px solid #0d47a1;">
+            <i class="fas fa-user"></i>
+          </div>
+          {% endif %}
+
+          <h4 class="mt-3">{{ member.get_full_name|default:member.username }}</h4>
+          <p class="text-muted">@{{ member.username }}</p>
+          <span class="badge bg-primary">{{ member.get_role_display }}</span>
+
+          {% if user == member %}
+          <div class="mt-3">
+            <a href="{% url 'edit_profile' %}" class="btn btn-primary w-100"><i class="fas fa-edit"></i> Edit Profile</a>
+          </div>
+          {% endif %}
+
+          {% if can_manage_roles %}
+          <div class="mt-3">
+            <button id="openRolesPanel" class="btn btn-warning w-100"><i class="fas fa-user-tag"></i> Manage Roles</button>
+          </div>
+          {% endif %}
+
+          <hr>
+          {% if member.email %}
+          <p class="mb-1"><i class="fas fa-envelope"></i> {{ member.email }}</p>
+          {% endif %}
+          {% if member.phone %}
+          <p class="mb-1"><i class="fas fa-phone"></i> {{ member.phone }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-8">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header"><strong>About</strong></div>
+        <div class="card-body">{{ member.bio|default:"No bio provided." }}</div>
+      </div>
+
+      <div class="card shadow-sm mb-4">
+        <div class="card-header"><strong>Skills</strong></div>
+        <div class="card-body">{{ member.skills|default:"No skills listed." }}</div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card text-center">
+            <div class="card-body">
+              <h5 class="card-title">{{ total_attended }}</h5>
+              <p class="card-text text-muted">Events Attended</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card text-center">
+            <div class="card-body">
+              <h5 class="card-title">{{ registered_events.count }}</h5>
+              <p class="card-text text-muted">Registered</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Sliding Roles Side Panel (new idea) -->
+<div id="rolesPanel" aria-hidden="true">
+  <div class="roles-panel-inner">
+    <header class="roles-panel-header">
+      <h5 class="m-0">Manage Roles for {{ member.username }}</h5>
+      <button id="closeRolesPanel" class="btn-close" aria-label="Close"></button>
+    </header>
+    <form method="POST" action="{% url 'manage_user_role' member.id %}" class="p-3">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">Primary Role</label>
+        <select name="role" class="form-select">
+          {% for code,name in role_choices %}
+          <option value="{{ code }}" {% if member.role == code %}selected{% endif %}>{{ name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Secondary Role (optional)</label>
+        <select name="secondary_role" class="form-select">
+          <option value="">-- None --</option>
+          {% for code,name in role_choices %}
+          <option value="{{ code }}" {% if member.secondary_role == code %}selected{% endif %}>{{ name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="d-flex justify-content-end gap-2">
+        <button type="button" id="cancelRoles" class="btn btn-secondary">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  /* Roles sliding panel styles */
+  #rolesPanel {
+    position: fixed; top: 0; right: 0; height: 100vh; width: 0; z-index: 2000; overflow: hidden; background: rgba(0,0,0,0.35); transition: width 240ms ease;}
+  #rolesPanel[aria-hidden="false"] { width: 100%; }
+  .roles-panel-inner { background: #fff; width: 380px; max-width: 92%; height: 100%; float: right; transform: translateX(100%); transition: transform 220ms ease; box-shadow: -10px 0 30px rgba(0,0,0,0.15); }
+  #rolesPanel[aria-hidden="false"] .roles-panel-inner { transform: translateX(0); }
+  .roles-panel-header { padding: 1rem; border-bottom: 1px solid #e9ecef; display:flex; justify-content:space-between; align-items:center; }
+  /* Keep transitions limited to panel transform to avoid page flicker */
+  .roles-panel-inner, .roles-panel-header { will-change: transform; }
+  /* form styles */
+  .roles-panel-inner .form-select { margin-bottom: 0.5rem; }
+  @media (max-width: 576px) { .roles-panel-inner { width: 100%; } }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const openBtn = document.getElementById('openRolesPanel');
+  const panel = document.getElementById('rolesPanel');
+  const closeBtn = document.getElementById('closeRolesPanel');
+  const cancelBtn = document.getElementById('cancelRoles');
+
+  function openPanel(){
+    panel.setAttribute('aria-hidden','false');
+    document.documentElement.style.overflow = 'hidden';
+  }
+  function closePanel(){
+    panel.setAttribute('aria-hidden','true');
+    document.documentElement.style.overflow = '';
+  }
+
+  if(openBtn) openBtn.addEventListener('click', openPanel);
+  if(closeBtn) closeBtn.addEventListener('click', closePanel);
+  if(cancelBtn) cancelBtn.addEventListener('click', closePanel);
+  panel.addEventListener('click', function(e){ if(e.target === panel) closePanel(); });
+});
+</script>
+
+{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}{{ member.get_full_name|default:member.username }} - AI Club{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <!-- Member Profile Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-lg">
+                <div class="card-body text-center">
+                    <!-- Profile Picture -->
+                    {% if member.profile_picture %}
+                    <img src="{{ member.profile_picture.url }}" alt="{{ member.username }}"
+                        style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; margin-bottom: 1rem; border: 4px solid #0d47a1;">
+                    {% else %}
+                    <div
+                        style="width: 150px; height: 150px; border-radius: 50%; background: linear-gradient(135deg, #0d47a1 0%, #1e88e5 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 3rem; color: white; border: 4px solid #0d47a1;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    {% endif %}
+
+                    <!-- Basic Info -->
+                    <h3>{{ member.get_full_name|default:member.username }}</h3>
+                    <p class="text-muted">@{{ member.username }}</p>
+                    <span class="badge bg-primary">{{ member.get_role_display }}</span>
+
+                    <!-- Edit Profile Button (if own profile) -->
+                    {% if user == member %}
+                    <div class="mt-3">
+                        <a href="{% url 'edit_profile' %}" class="btn btn-primary w-100">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    <!-- Manage Role Button (Admin/Owner/President) -->
+                    {% if can_manage_roles %}
+                    <div class="mt-3">
+                        <button type="button" class="btn btn-warning w-100" data-bs-toggle="modal" data-bs-target="#manageRoleModal">
+                            <i class="fas fa-user-tag"></i> Manage Roles
+                        </button>
+                    </div>
+
+                    <!-- Role Management Modal (Bootstrap) -->
+                    <div class="modal" id="manageRoleModal" tabindex="-1" style="display: none;">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Manage Roles for {{ member.username }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <form action="{% url 'manage_user_role' member.id %}" method="POST">
+                                    {% csrf_token %}
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Primary Role</label>
+                                            <select name="role" class="form-select">
+                                                {% for code, name in role_choices %}
+                                                <option value="{{ code }}" {% if member.role == code %}selected{% endif %}>{{ name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Secondary Role (Optional)</label>
+                                            <select name="secondary_role" class="form-select">
+                                                <option value="">-- None --</option>
+                                                {% for code, name in role_choices %}
+                                                <option value="{{ code }}" {% if member.secondary_role == code %}selected{% endif %}>{{ name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <hr>
+
+                    <!-- Contact Info -->
+                    {% if member.phone %}
+                    <p class="mb-2">
+                        <i class="fas fa-phone"></i> {{ member.phone }}
+                    </p>
+                    {% endif %}
+
+                    {% if member.email %}
+                    <p class="mb-2">
+                        <i class="fas fa-envelope"></i> {{ member.email }}
+                    </p>
+                    {% endif %}
+
+                    <!-- Social Links -->
+                    {% if member.github_url or member.linkedin_url %}
+                    <div class="mt-3">
+                        {% if member.github_url %}
+                        <a href="{{ member.github_url }}" target="_blank" class="btn btn-outline-secondary btn-sm">
+                            <i class="fab fa-github"></i> GitHub
+                        </a>
+                        {% endif %}
+                        {% if member.linkedin_url %}
+                        <a href="{{ member.linkedin_url }}" target="_blank" class="btn btn-outline-secondary btn-sm">
+                            <i class="fab fa-linkedin"></i> LinkedIn
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Stats -->
+                    <div class="row mt-4 text-center">
+                        <div class="col-6">
+                            <strong>{{ total_attended }}</strong><br>
+                            <small class="text-muted">Events Attended</small>
+                        </div>
+                        <div class="col-6">
+                            <strong>{{ registered_events.count }}</strong><br>
+                            <small class="text-muted">Registered</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Member Details -->
+        <div class="col-md-8">
+            <!-- Bio -->
+            {% if member.bio %}
+            <div class="card shadow-lg mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-quote-left"></i> About</h5>
+                </div>
+                <div class="card-body">
+                    {{ member.bio }}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Skills -->
+            {% if member.skills %}
+            <div class="card shadow-lg mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-code"></i> Skills</h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ member.skills }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Attended Events -->
+            {% if attended_events %}
+            <div class="card shadow-lg mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-check-circle"></i> Events Attended ({{ attended_events.count }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for registration in attended_events %}
+                        <a href="{% url 'event_detail' registration.event.id %}"
+                            class="list-group-item list-group-item-action">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ registration.event.title }}</h6>
+                                    <small class="text-muted">{{ registration.event.date|date:"d/m/Y H:i" }}</small>
+                                </div>
+                                <span class="badge bg-success">Attended</span>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Registered Events -->
+            {% if registered_events %}
+            <div class="card shadow-lg">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-calendar-check"></i> Upcoming Events ({{ registered_events.count }})</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for registration in registered_events %}
+                        <a href="{% url 'event_detail' registration.event.id %}"
+                            class="list-group-item list-group-item-action">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ registration.event.title }}</h6>
+                                    <small class="text-muted">{{ registration.event.date|date:"d/m/Y H:i" }}</small>
+                                </div>
+                                <span class="badge bg-warning">Registered</span>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Disable Bootstrap modal animations */
+    .modal {
+        transition: none !important;
+    }
+
+    .modal.show {
+        transition: none !important;
+    }
+
+    .modal-backdrop {
+        transition: none !important;
+    }
+
+    /* Smooth form interactions only */
+    .form-select:focus,
+    .form-label:focus {
+        transition: none !important;
+    }
+</style>
+{% endblock %}
