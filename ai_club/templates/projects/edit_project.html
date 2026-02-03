@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Project - AI Club{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-header">
+                    <h3 class="mb-0"><i class="fas fa-edit"></i> Edit Project: {{ project.title }}</h3>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="id_title" class="form-label"><i class="fas fa-heading"></i> Project Title</label>
+                            {{ form.title }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_description" class="form-label"><i class="fas fa-align-left"></i> Description</label>
+                            {{ form.description }}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="id_category" class="form-label"><i class="fas fa-folder"></i> Category</label>
+                                {{ form.category }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="id_status" class="form-label"><i class="fas fa-tasks"></i> Status</label>
+                                {{ form.status }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_repository_url" class="form-label"><i class="fab fa-github"></i> Repository URL</label>
+                            {{ form.repository_url }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_documentation_url" class="form-label"><i class="fas fa-book"></i> Documentation URL</label>
+                            {{ form.documentation_url }}
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check">
+                                {{ form.is_public }}
+                                <label class="form-check-label" for="id_is_public">
+                                    <i class="fas fa-globe"></i> Make this project public
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                            <a href="{% url 'project_detail' project.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

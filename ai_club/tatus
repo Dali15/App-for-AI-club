@@ -1,0 +1,5 @@
+[33m3a9d5cf[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Fix split Django template tags causing 500 error on member profile page
+[33m23e8388[m Fix Django template syntax errors in member_profile.html
+[33me76f8d7[m Fix template syntax: definitive fix with spaces and endfor
+[33m2dc3eb4[m Fix template syntax: definitive fix for 500 error
+[33m6df2c7c[m Final template cleanup: merged split tags and updated version

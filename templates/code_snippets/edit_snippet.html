@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Code Snippet - AI Club{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fas fa-edit"></i> Edit Code Snippet
+                    </h3>
+                </div>
+
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        {% if messages %}
+                        <div>
+                            {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                {{ message }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Title -->
+                        <div class="mb-3">
+                            <label for="title" class="form-label">
+                                <i class="fas fa-heading"></i> Title <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" name="title" id="title" class="form-control" 
+                                   value="{{ snippet.title }}" required>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label for="description" class="form-label">
+                                <i class="fas fa-comment"></i> Description
+                            </label>
+                            <textarea name="description" id="description" class="form-control" rows="3">{{ snippet.description }}</textarea>
+                        </div>
+
+                        <!-- Topic -->
+                        <div class="mb-3">
+                            <label for="topic" class="form-label">
+                                <i class="fas fa-tag"></i> Topic (Optional)
+                            </label>
+                            <input type="text" name="topic" id="topic" class="form-control" 
+                                   value="{{ snippet.topic }}">
+                        </div>
+
+                        <!-- Language -->
+                        <div class="mb-3">
+                            <label for="language" class="form-label">
+                                <i class="fas fa-code"></i> Language <span class="text-danger">*</span>
+                            </label>
+                            <select name="language" id="language" class="form-select" required>
+                                {% for value, label in languages %}
+                                <option value="{{ value }}" {% if snippet.language == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Code -->
+                        <div class="mb-4">
+                            <label for="code" class="form-label">
+                                <i class="fas fa-file-code"></i> Code <span class="text-danger">*</span>
+                            </label>
+                            <textarea name="code" id="code" class="form-control" rows="15" required 
+                                      style="font-family: monospace; font-size: 0.875rem;">{{ snippet.code }}</textarea>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Update Code
+                            </button>
+                            <a href="{% url 'code_detail' snippet.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up - AI Club{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5 mb-5">
+    <div class="col-md-6">
+        <div class="card shadow-lg">
+            <div class="card-header text-center py-4">
+                <h2 class="mb-0" style="color: #0d47a1;">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </h2>
+                <p class="text-muted mt-2 mb-0">Join AI Club Today</p>
+            </div>
+
+            <div class="card-body p-4">
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <strong>Registration Error!</strong>
+                        {% for error in form.non_field_errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Username -->
+                    <div class="mb-3">
+                        <label for="{{ form.username.id_for_label }}" class="form-label">
+                            <i class="fas fa-at"></i> Username
+                        </label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="invalid-feedback d-block">
+                                <i class="fas fa-times-circle"></i> {{ form.username.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted d-block mt-1">
+                            <i class="fas fa-info-circle"></i> 150 characters or fewer. Letters, digits and @/./+/-/_ only.
+                        </small>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-3">
+                        <label for="{{ form.email.id_for_label }}" class="form-label">
+                            <i class="fas fa-envelope"></i> Email Address
+                        </label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="invalid-feedback d-block">
+                                <i class="fas fa-times-circle"></i> {{ form.email.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <!-- First Name -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                <i class="fas fa-user"></i> First Name
+                            </label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.first_name.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Last Name -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                <i class="fas fa-user"></i> Last Name
+                            </label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.last_name.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="mb-3">
+                        <label for="{{ form.password1.id_for_label }}" class="form-label">
+                            <i class="fas fa-lock"></i> Password
+                        </label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                            <div class="invalid-feedback d-block">
+                                <i class="fas fa-times-circle"></i> {{ form.password1.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted d-block mt-1">
+                            <ul class="mb-0 ps-3">
+                                <li>At least 8 characters long</li>
+                                <li>Cannot be entirely numeric</li>
+                                <li>Cannot be a common password</li>
+                            </ul>
+                        </small>
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div class="mb-4">
+                        <label for="{{ form.password2.id_for_label }}" class="form-label">
+                            <i class="fas fa-lock"></i> Confirm Password
+                        </label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                            <div class="invalid-feedback d-block">
+                                <i class="fas fa-times-circle"></i> {{ form.password2.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary w-100 py-2 mb-3" style="font-weight: 600;">
+                        <i class="fas fa-user-check"></i> Create Account
+                    </button>
+                </form>
+
+                <hr style="margin: 2rem 0;">
+
+                <!-- Login Link -->
+                <div class="text-center">
+                    <p class="text-muted mb-0">
+                        Already have an account?
+                        <a href="{% url 'login' %}" class="fw-bold" style="color: #0d47a1;">
+                            Sign In
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Alert -->
+        <div class="alert alert-info mt-4" role="alert">
+            <i class="fas fa-shield-alt"></i>
+            <strong>Privacy Notice:</strong> Your personal information is secure and will only be used for club communications.
+        </div>
+    </div>
+</div>
+
+<style>
+    #id_username, #id_email, #id_first_name, #id_last_name, #id_password1, #id_password2 {
+        width: 100%;
+        border-radius: 6px;
+    }
+    
+    .invalid-feedback {
+        color: #e53935;
+        margin-top: 0.25rem;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}

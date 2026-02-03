@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+
+{% block title %}Modifier Permissions - {{ role_label }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>{{ role_label }}</h1>
+            <p class="text-muted">Gérer les permissions pour ce rôle</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'manage_permissions' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Current Permissions -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">✅ Permissions Actuelles</h5>
+                </div>
+                <div class="card-body">
+                    <div id="current-permissions" class="permission-container">
+                        {% for perm in permissions %}
+                            <div class="permission-badge" data-permission="{{ perm }}">
+                                {% for perm_key, perm_label in available_permissions %}
+                                    {% if perm_key == perm %}
+                                        <span class="badge bg-success">{{ perm_label }}</span>
+                                    {% endif %}
+                                {% endfor %}
+                                {% if is_owner_or_president %}
+                                    <button type="button" class="btn btn-sm btn-danger remove-perm" data-permission="{{ perm }}">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        {% empty %}
+                            <p class="text-muted text-center py-4">Aucune permission assignée</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Permissions -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">⚙️ Permissions Disponibles</h5>
+                </div>
+                <div class="card-body">
+                    {% if is_owner_or_president %}
+                        <div class="permission-container">
+                            {% for perm_key, perm_label in available_permissions %}
+                                {% if perm_key not in permissions %}
+                                    <div class="permission-badge" data-permission="{{ perm_key }}">
+                                        <span class="badge bg-light text-dark">{{ perm_label }}</span>
+                                        <button type="button" class="btn btn-sm btn-success add-perm" data-permission="{{ perm_key }}">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-4">
+                            Seuls les propriétaires et présidents peuvent modifier les permissions.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Permission Summary -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">📊 Résumé</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Rôle:</strong> {{ role_label }}</p>
+                    <p><strong>Clé interne:</strong> <code>{{ role }}</code></p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Permissions totales:</strong> <span id="total-perms" class="badge bg-info">{{ permissions|length }}</span></p>
+                    <p><strong>Statut:</strong> 
+                        <span class="badge bg-success">Actif</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .permission-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .permission-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        background-color: #f8f9fa;
+        border-radius: 6px;
+        border: 1px solid #dee2e6;
+        transition: all 0.2s ease;
+    }
+
+    .permission-badge:hover {
+        background-color: #e9ecef;
+        border-color: #adb5bd;
+    }
+
+    .permission-badge .badge {
+        white-space: nowrap;
+    }
+
+    .permission-badge .btn {
+        padding: 2px 6px;
+        font-size: 12px;
+    }
+
+    #current-permissions .permission-badge {
+        background-color: #d4edda;
+        border-color: #28a745;
+    }
+
+    .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+    }
+</style>
+
+<script>
+    const role = "{{ role }}";
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                      Array.from(document.querySelectorAll('input')).find(el => el.name === 'csrfmiddlewaretoken')?.value;
+
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type} alert-dismissible fade show`;
+        toast.innerHTML = `${message} <button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+        
+        const container = document.querySelector('.toast-container') || document.createElement('div');
+        if (!document.querySelector('.toast-container')) {
+            container.className = 'toast-container';
+            document.body.appendChild(container);
+        }
+        
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    document.querySelectorAll('.add-perm').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const permission = this.dataset.permission;
+            updatePermission('add', permission, this);
+        });
+    });
+
+    document.querySelectorAll('.remove-perm').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const permission = this.dataset.permission;
+            updatePermission('remove', permission, this);
+        });
+    });
+
+    function updatePermission(action, permission, buttonElement) {
+        const formData = new FormData();
+        formData.append('role', role);
+        formData.append('permission', permission);
+        formData.append('action', action);
+
+        fetch('{% url "update_role_permission" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, 'success');
+                location.reload();
+            } else {
+                showToast(data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Erreur lors de la mise à jour', 'danger');
+        });
+    }
+
+    // Update total permissions count
+    function updateCount() {
+        const count = document.querySelectorAll('#current-permissions .badge').length;
+        document.getElementById('total-perms').textContent = count;
+    }
+
+    // Observe changes
+    const observer = new MutationObserver(updateCount);
+    observer.observe(document.getElementById('current-permissions'), { childList: true });
+</script>
+
+<!-- CSRF Token for forms -->
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+{% endblock %}

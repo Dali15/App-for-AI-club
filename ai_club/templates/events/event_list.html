@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Events - AI Club{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title mb-0">
+        <i class="fas fa-calendar-alt"></i> Events
+    </h1>
+    {% if user.is_authenticated and user.role in 'president,vice_president,events_manager,owner'|lower %}
+    <a href="{% url 'create_event' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Create Event
+    </a>
+    {% endif %}
+</div>
+
+<!-- Search & Filter -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-2">
+            <div class="col-md-6">
+                <input type="text" name="search" class="form-control" placeholder="Search events..." value="{{ search_query }}">
+            </div>
+            <div class="col-md-3">
+                <select name="type" class="form-select">
+                    <option value="">All Types</option>
+                    {% for value, label in event_types %}
+                    <option value="{{ value }}" {% if event_type == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1">
+                    <i class="fas fa-search"></i> Search
+                </button>
+                {% if search_query or event_type %}
+                <a href="{% url 'event_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times"></i>
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if events %}
+<div class="row">
+    {% for event in events %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 shadow-lg">
+            <div class="card-header" style="background: linear-gradient(135deg, #0d47a1 0%, #1e88e5 100%); color: white;">
+                <h5 class="mb-2">{{ event.title }}</h5>
+                <div class="d-flex gap-2 flex-wrap">
+                    <span class="badge bg-light text-dark">{{ event.get_event_type_display }}</span>
+                    {% if event.difficulty_level %}
+                    <span class="badge bg-light text-dark">{{ event.get_difficulty_level_display }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-2">
+                    <i class="fas fa-calendar-check"></i>
+                    <strong>{{ event.date|date:"M d, Y" }}</strong> @ {{ event.date|time:"H:i" }}
+                </p>
+
+                <p class="text-muted mb-3">
+                    <i class="fas fa-map-marker-alt"></i> {{ event.location }}
+                </p>
+
+                <p class="card-text mb-3">{{ event.description|truncatewords:20 }}</p>
+
+                {% if event.registrations.count %}
+                <small class="text-muted d-block mb-2">
+                    <i class="fas fa-users"></i> {{ event.registrations.count }} registered
+                </small>
+                {% endif %}
+
+                <div class="d-flex gap-2 mt-3">
+                    <a href="{% url 'event_detail' event.id %}" class="btn btn-primary btn-sm flex-grow-1">
+                        <i class="fas fa-info-circle"></i> Details
+                    </a>
+                    {% if event.id not in user_registrations %}
+                    <form method="post" action="{% url 'register_event' event.id %}" style="display:inline; flex-grow:1;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success btn-sm w-100">
+                            <i class="fas fa-check-circle"></i> Register
+                        </button>
+                    </form>
+                    {% else %}
+                    <span class="badge bg-success align-self-center">Registered</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-footer text-muted small">
+                <i class="fas fa-user"></i> Created by {{ event.created_by.username }}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info" role="alert">
+    <i class="fas fa-info-circle"></i>
+    <strong>{% if search_query %}No events found matching "{{ search_query }}"!{% else %}No Events Yet!{% endif %}</strong> 
+    {% if not search_query %}Check back soon for upcoming events.{% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,468 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Assistant - AI Club{% endblock %}
+
+{% block content %}
+<style>
+    .assistant-wrapper {
+        display: flex;
+        height: calc(100vh - 200px);
+        gap: 0;
+        margin: 20px auto;
+        max-width: 1200px;
+    }
+    
+    .commands-sidebar {
+        width: 200px;
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 8px 0 0 8px;
+        padding: 15px;
+        overflow-y: auto;
+    }
+    
+    .commands-title {
+        font-weight: bold;
+        color: #667eea;
+        margin-bottom: 15px;
+        font-size: 14px;
+    }
+    
+    .command-btn {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 8px;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        cursor: pointer;
+        text-align: left;
+        font-size: 13px;
+        transition: all 0.2s;
+        color: #333;
+    }
+    
+    .command-btn:hover {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+    
+    .command-label {
+        font-size: 11px;
+        opacity: 0.7;
+        display: block;
+        margin-top: 3px;
+    }
+    
+    .assistant-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: white;
+        border-radius: 0 8px 8px 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    
+    .chat-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .chat-header-left h1 {
+        margin: 0;
+        font-size: 24px;
+    }
+    
+    .chat-header-left p {
+        margin: 5px 0 0 0;
+        opacity: 0.9;
+        font-size: 14px;
+    }
+    
+    .chat-header-right {
+        text-align: right;
+        font-size: 14px;
+    }
+    
+    .chat-header-right .user-info {
+        margin-bottom: 10px;
+    }
+    
+    .chat-header-right .history-link {
+        display: inline-block;
+        background: rgba(255,255,255,0.2);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        text-decoration: none;
+        font-size: 12px;
+        border: 1px solid rgba(255,255,255,0.3);
+        transition: all 0.2s;
+    }
+    
+    .chat-header-right .history-link:hover {
+        background: rgba(255,255,255,0.3);
+        border-color: rgba(255,255,255,0.5);
+    }
+    
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .message {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .message.user {
+        justify-content: flex-end;
+    }
+    
+    .message.assistant {
+        justify-content: flex-start;
+    }
+    
+    .message-bubble {
+        max-width: 100%;
+        padding: 12px 15px;
+        border-radius: 12px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+        word-break: break-word;
+        line-height: 1.4;
+        font-size: 14px;
+    }
+    
+    .message.user .message-bubble {
+        background: #667eea;
+        color: white;
+        border-bottom-right-radius: 4px;
+    }
+    
+    .message.assistant .message-bubble {
+        background: #f0f0f0;
+        color: #333;
+        border-bottom-left-radius: 4px;
+    }
+    
+    .message-meta {
+        font-size: 12px;
+        opacity: 0.7;
+        margin-top: 5px;
+    }
+    
+    .command-badge {
+        display: inline-block;
+        background: #667eea;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 11px;
+        margin-top: 5px;
+    }
+    
+    .faq-badge {
+        display: inline-block;
+        background: #28a745;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 11px;
+        margin-top: 5px;
+    }
+    
+    .chat-input-area {
+        border-top: 1px solid #e0e0e0;
+        padding: 15px;
+        background: #f8f9fa;
+    }
+    
+    .chat-input-wrapper {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .chat-input {
+        flex: 1;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        padding: 12px 16px;
+        font-size: 14px;
+        font-family: inherit;
+        outline: none;
+        transition: border-color 0.3s;
+    }
+    
+    .chat-input:focus {
+        border-color: #667eea;
+    }
+    
+    .chat-input::placeholder {
+        color: #999;
+    }
+    
+    .send-btn {
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 44px;
+        height: 44px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        transition: background 0.3s;
+    }
+    
+    .send-btn:hover {
+        background: #764ba2;
+    }
+    
+    .send-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
+    
+    .loading {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+    }
+    
+    .loading span {
+        width: 8px;
+        height: 8px;
+        background: #667eea;
+        border-radius: 50%;
+        animation: bounce 1.4s infinite;
+    }
+    
+    .loading span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+    
+    .loading span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+    
+    @keyframes bounce {
+        0%, 80%, 100% { opacity: 0.3; }
+        40% { opacity: 1; }
+    }
+    
+    @media (max-width: 768px) {
+        .assistant-wrapper {
+            flex-direction: column;
+            height: auto;
+        }
+        
+        .commands-sidebar {
+            width: 100%;
+            border-radius: 8px 8px 0 0;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            max-height: 150px;
+            padding: 10px;
+        }
+        
+        .assistant-container {
+            border-radius: 0 0 8px 8px;
+            height: calc(100vh - 400px);
+        }
+        
+        .message-bubble {
+            max-width: 90%;
+        }
+        
+        .command-btn {
+            padding: 8px;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+    }
+</style>
+
+<div class="assistant-wrapper">
+    <!-- Sidebar with commands -->
+    <div class="commands-sidebar">
+        <div class="commands-title">⌨️ Commandes</div>
+        {% for cmd in commands %}
+            <button class="command-btn" onclick="sendCommand('{{ cmd.cmd }}')">
+                <strong>{{ cmd.cmd }}</strong>
+                <span class="command-label">{{ cmd.desc }}</span>
+            </button>
+        {% endfor %}
+    </div>
+    
+    <!-- Main chat area -->
+    <div class="assistant-container">
+        <div class="chat-header">
+            <div class="chat-header-left">
+                <h1>💬 Assistant Club</h1>
+                <p>Chat personnel - Vos conversations privées</p>
+            </div>
+            <div class="chat-header-right">
+                <div class="user-info">
+                    👤 {{ user_name }}<br>
+                    <small>{{ total_messages }} messages</small>
+                </div>
+                <a href="{% url 'assistant:chat_history' %}" class="history-link">
+                    📋 Historique complet
+                </a>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            {% if recent_messages %}
+                {% for msg in recent_messages|dictsort:"created_at" %}
+                    <div class="message user">
+                        <div>
+                            <div class="message-bubble">{{ msg.message }}</div>
+                            <div class="message-meta">Vous</div>
+                        </div>
+                    </div>
+                    <div class="message assistant">
+                        <div>
+                            <div class="message-bubble">
+                                {{ msg.response }}
+                                {% if msg.is_faq %}<div class="faq-badge">📚 FAQ</div>{% endif %}
+                            </div>
+                            <div class="message-meta">Assistant</div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div style="text-align: center; color: #999; margin: auto;">
+                    <p>👋 Bienvenue! Cliquez sur une commande ou posez une question...</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="chat-input-area">
+            <div class="chat-input-wrapper">
+                <input 
+                    type="text" 
+                    class="chat-input" 
+                    id="messageInput"
+                    placeholder="Tapez /help pour l'aide, ou une question..."
+                    autocomplete="off"
+                >
+                <button class="send-btn" id="sendBtn">➤</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const chatMessages = document.getElementById('chatMessages');
+const messageInput = document.getElementById('messageInput');
+const sendBtn = document.getElementById('sendBtn');
+
+function sendCommand(command) {
+    messageInput.value = command;
+    messageInput.focus();
+    setTimeout(sendMessage, 100);
+}
+
+function sendMessage() {
+    const message = messageInput.value.trim();
+    if (!message) return;
+    
+    addMessageToChat(message, 'user');
+    messageInput.value = '';
+    messageInput.focus();
+    
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'message assistant';
+    loadingDiv.innerHTML = '<div><div class="loading"><span></span><span></span><span></span></div></div>';
+    chatMessages.appendChild(loadingDiv);
+    setTimeout(() => {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }, 50);
+    
+    fetch('{% url "assistant:send_message" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ message: message })
+    })
+    .then(r => r.json())
+    .then(data => {
+        loadingDiv.remove();
+        if (data.success) {
+            let response = data.response;
+            if (data.is_command) {
+                response += '<div class="command-badge">⌨️ Commande</div>';
+            } else if (data.is_faq) {
+                response += '<div class="faq-badge">📚 FAQ</div>';
+            }
+            addMessageToChat(response, 'assistant', true);
+        } else {
+            addMessageToChat('❌ ' + (data.error || 'Erreur'), 'assistant');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        loadingDiv.remove();
+        addMessageToChat('❌ Erreur de connexion', 'assistant');
+    });
+}
+
+function addMessageToChat(text, sender, isHTML = false) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `message ${sender}`;
+    
+    const bubbleDiv = document.createElement('div');
+    
+    const messageBubble = document.createElement('div');
+    messageBubble.className = 'message-bubble';
+    
+    if (isHTML) {
+        messageBubble.innerHTML = text;
+    } else {
+        messageBubble.textContent = text;
+    }
+    
+    const metaDiv = document.createElement('div');
+    metaDiv.className = 'message-meta';
+    metaDiv.textContent = sender === 'user' ? 'Vous' : 'Assistant';
+    
+    bubbleDiv.appendChild(messageBubble);
+    bubbleDiv.appendChild(metaDiv);
+    msgDiv.appendChild(bubbleDiv);
+    
+    chatMessages.appendChild(msgDiv);
+    setTimeout(() => {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }, 50);
+}
+
+sendBtn.addEventListener('click', sendMessage);
+messageInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        sendMessage();
+    }
+});
+
+messageInput.focus();
+</script>
+{% endblock %}

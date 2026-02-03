@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}{{ snippet.title }} - AI Club{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-header">
+                    <h2 class="mb-3">{{ snippet.title }}</h2>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <span class="badge bg-info">{{ snippet.get_language_display }}</span>
+                        {% if snippet.topic %}
+                        <span class="badge bg-secondary">{{ snippet.topic }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <!-- Description -->
+                    {% if snippet.description %}
+                    <div class="mb-4">
+                        <h5><i class="fas fa-comment"></i> Description</h5>
+                        <p>{{ snippet.description }}</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Code Block -->
+                    <div class="mb-4">
+                        <h5><i class="fas fa-code"></i> Code</h5>
+                        <pre style="background: #282c34; border-radius: 8px; padding: 1.5rem; margin: 0;"><code class="language-{{ snippet.language }}">{{ snippet.code }}</code></pre>
+                    </div>
+
+                    <!-- Metadata -->
+                    <div class="alert alert-light border-left" style="border-left: 4px solid #0d47a1;">
+                        <strong>Shared by:</strong> {{ snippet.created_by.get_full_name|default:snippet.created_by.username }}<br>
+                        <strong>Date:</strong> {{ snippet.created_at|date:"M d, Y H:i" }}<br>
+                        <small>Last updated: {{ snippet.updated_at|date:"M d, Y H:i" }}</small>
+                    </div>
+                </div>
+
+                <!-- Edit/Delete Buttons (for author) -->
+                {% if user == snippet.created_by %}
+                <div class="card-footer bg-light">
+                    <a href="{% url 'edit_snippet' snippet.id %}" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    <a href="{% url 'delete_snippet' snippet.id %}" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Delete
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-md-4">
+            <!-- Copy Code Button -->
+            <div class="card shadow-lg mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-clipboard"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <button class="btn btn-primary w-100 mb-2" onclick="copyCode()">
+                        <i class="fas fa-copy"></i> Copy Code
+                    </button>
+                    <a href="{% url 'code_list' %}" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                </div>
+            </div>
+
+            <!-- Info Card -->
+            <div class="card shadow-lg">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Details</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">
+                        <strong>Language:</strong><br>
+                        {{ snippet.get_language_display }}
+                    </p>
+                    {% if snippet.topic %}
+                    <p class="mb-2">
+                        <strong>Topic:</strong><br>
+                        {{ snippet.topic }}
+                    </p>
+                    {% endif %}
+                    <p>
+                        <strong>Author:</strong><br>
+                        {{ snippet.created_by.get_full_name|default:snippet.created_by.username }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyCode() {
+    const codeElement = document.querySelector('code');
+    const text = codeElement.textContent;
+    
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Code copied to clipboard!');
+    }).catch(() => {
+        alert('Failed to copy code');
+    });
+}
+</script>
+{% endblock %}
