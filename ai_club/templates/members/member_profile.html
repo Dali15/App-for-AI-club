@@ -218,9 +218,41 @@
 </div>
 
 <style>
-    /* Fix hover issue for Manage Roles modal */
+    /* Fix flickering issue for Manage Roles modal */
+    #manageRoleModal {
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
     .modal-content {
         pointer-events: auto;
+        transition: none;
+        animation: none;
+    }
+
+    /* Prevent layout shift when modal opens */
+    body.modal-open {
+        overflow: hidden;
+    }
+
+    /* Smooth modal backdrop fade */
+    .modal.fade .modal-dialog {
+        transition: transform 0.3s ease-out;
+    }
+
+    /* Ensure form elements don't cause reflow */
+    .modal-body {
+        min-height: auto;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-select {
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .form-select:focus {
+        border-color: #0d47a1;
+        box-shadow: 0 0 0 0.2rem rgba(13, 71, 161, 0.25);
     }
 
     .role-card:hover {
