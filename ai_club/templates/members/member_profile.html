@@ -218,41 +218,53 @@
 </div>
 
 <style>
-    /* Fix flickering issue for Manage Roles modal */
+    /* Disable all modal animations to prevent flickering */
+    .modal.fade {
+        transition: none !important;
+    }
+
+    .modal.fade.show {
+        transition: none !important;
+    }
+
+    .modal.show .modal-dialog {
+        transform: none !important;
+        transition: none !important;
+    }
+
     #manageRoleModal {
-        background-color: rgba(0, 0, 0, 0.5);
+        background-color: rgba(0, 0, 0, 0.5) !important;
     }
 
     .modal-content {
         pointer-events: auto;
         transition: none !important;
         animation: none !important;
+        will-change: auto;
     }
 
     .modal-dialog {
         transition: none !important;
+        animation: none !important;
     }
 
-    .modal.fade .modal-dialog {
+    .modal-backdrop {
         transition: none !important;
+        animation: none !important;
     }
 
     /* Prevent layout shift when modal opens */
     body.modal-open {
-        overflow: hidden;
+        overflow: hidden !important;
         padding-right: 0 !important;
     }
 
-    /* Prevent flicker on backdrop */
-    .modal-backdrop {
-        transition: opacity 0.15s linear;
-    }
-
-    /* Ensure form elements don't cause reflow */
+    /* Form elements - no transitions */
     .modal-body {
         min-height: auto;
         display: flex;
         flex-direction: column;
+        will-change: auto;
     }
 
     .mb-3 {
@@ -271,23 +283,34 @@
         border: 1px solid #ced4da;
         border-radius: 0.25rem;
         background-color: #fff;
+        transition: none !important;
+        animation: none !important;
+        will-change: auto;
     }
 
-    /* Disable hover effects to prevent flickering */
     .form-select:hover {
         cursor: pointer;
+        background-color: #fff;
+        border-color: #ced4da;
     }
 
     .form-select:focus {
         border-color: #0d47a1;
         outline: 0;
         box-shadow: 0 0 0 0.2rem rgba(13, 71, 161, 0.25);
+        transition: none !important;
     }
 
-    /* Remove any hover scale effects */
-    .role-card:hover {
-        background-color: transparent;
-        cursor: pointer;
+    .btn {
+        transition: none !important;
+    }
+
+    .btn:hover {
+        transition: none !important;
+    }
+
+    .btn:focus {
+        transition: none !important;
     }
 </style>
 {% endblock %}
